@@ -1,0 +1,75 @@
+Comunicação entre microsserviços:
+
+
+Comunicação Síncrona:
+-> Comunicação que envolve um contato direto entre o emissor e o receptor.
+-> O protocolo HTTP é uma comunicação síncrona, pois você faz uma requisição (cliente) e espera uma resposta de um serviço ou de um servidor.
+-> Chamadas a APIs são síncronas, porém, o processo executado pela API pode ser  assíncrono também.
+	-> Ex: Você pode programar uma API para esperar para dar a resposta assim que todas as vendas forem processadas, ou você pode devolver uma resposta como “Processo iniciado.”, e deixar o processamento executando em background. 
+	-> O processamento da API é assíncrono, pode terminar daqui a 10, 15, 20 minutos, etc.
+	-> Mas a requisição HTTP não é, você faz a requisição e tem algum tipo de resposta, seja ela 200, 400, 500, etc.
+
+
+Comunicação Assíncrona:
+-> É uma comunicação em que há um agente emissor e um receptor, com a diferença que o receptor não irá receber a mensagem quando o emissor emiti-la, sua recepção será atemporal, ou seja, não se sabe quando irá receber.
+-> A melhor maneira de exemplificar é com uma fila de mensagens, ao qual um emissor apenas envia uma informação a uma fila, e algum outro agente receptor responsável por apenas escutar as mensagens recebidas dessa fila irá processar a mensagem sequencialmente conforme forem sendo recebidas.
+-> Hoje o protocolo que melhor implementa as filas de mensagens é o protocolo AMQP – Advanced Message Queue Protocol, ou protocolo avançado de enfileiramento de mensagens.
+
+
+
+RabbitMQ:
+-> O RabbitMQ tem alguns conceitos interessantes, como os tipos de Exchange, ou seja, regras de roteamento das mensagens. Nós temos:
+
+Direct Exchange:
+-> Uma fila é vinculada a uma Direct Exchange baseada em sua routing key.
+-> A routing key é um atributo da mensagem utilizada pela Exchange escolhida para decidir para qual rota a mensagem será enviada.
+-> Uma fila é vinculada à Direct Exchange pela routing key (K).
+-> Quando uma nova mensagem com uma routing key (R) é enviada a uma Direct Exchange, a Exchange irá rotear apenas se R = K.
+
+Fanout Exchange:
+A Fanout Exchange roteia mensagens para todas as filas vinculadas a ela e a routing key é ignorada. Se N filas são vinculadas a uma Fanout Exchange, quando uma nova mensagem é publicada, é feita uma cópia dessa mensagem, que é entregue a todas as N filas vinculadas à Fanout Exchange.
+Jogos MMO utilizam bastante Fanout Exchanges.
+Sites de esportes
+Grupos de chats
+Sistemas distribuídos
+
+
+Topic Exchange (esta que iremos utilizar)
+A Topic Exchange roteia mensagens para uma ou mais filas baseadas em uma correspondência entre a routing key e o padrão utilizado para vincular uma fila à Exchange.
+É muito utilizada para implementar vários padrões de publisheres e subscribers.
+Topic Exchanges são muito utilizados para roteamento multicast de mensagens.
+
+
+Headers Exchange
+A Header Exchange é projetada para roteamento em vários atributos que são mais facilmente expressos como cabeçalhos (headers) da mensagem ao invés do uso de uma routing key. 
+A Header Exchange ignora a routing key. 
+Em vez disso, os atributos usados para roteamento são obtidos do atributo headers. Uma mensagem é considerada correspondente se o valor do header for igual ao valor especificado no vínculo.
+
+
+
+
+Criando uma instância container docker do Postgres:
+-> docker run --name auth-db -p 5434:5432 -e POSTGRES_DB=auth-db -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=123456 postgres:11
+-> docker run --name product-db -p 5433:5432 -e POSTGRES_DB=product-db -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=123456 postgres:11
+
+MongoDB:
+Imagem tutum/mongodb
+-> docker run --name sales-db -d -p 27017:27017 -p 28017:28017 -e MONGODB_USER="admin" -e MONGODB_DATABASE="sales" -e MONGODB_PASS="123456" tutum/mongodb
+Sem usuário e senha
+-> docker run --name sales-db -p 27017:27017 -p 28017:28017 -e MONGODB_DATABASE="sales" tutum/mongodb
+Imagem do mongo normal
+-> docker run --name sales-db -e MONGO_INITDB_ROOT_USERNAME=admin -e MONGO_INITDB_ROOT_PASSWORD=123456 mongo
+
+-> Para ver se está funcionando: http://localhost:27017/
+-> Instalar o MongoDB Shell
+Conectar no banco com o MongoDB Shell
+-> mongosh "mongodb://admin:123456@localhost:27017/sales"
+Ou sem usuário caso der erro de autenticação
+-> mongosh "mongodb://localhost:27017/sales"
+
+Agora o container do RabbitMQ:
+-> docker run --name sales_rabbit -p 5672:5672 -p 25676:25676 -p 15672:15672 rabbitmq:3-management
+
+
+- Depois de criado o arquivo docker-compose, para rodar ele preisa ir até o diretório e rodar este comando:
+-> docker-compose up --build
